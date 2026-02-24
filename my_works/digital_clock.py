@@ -18,9 +18,9 @@ COLON_W = DOT_SIZE
 
 # Concentric Circle Settings
 RADIUS_HOUR = 300
-RADIUS_MINUTE = 280
-RADIUS_SECOND = 260
-CIRCLE_WIDTH = 10
+RADIUS_MINUTE = 270
+RADIUS_SECOND = 240
+CIRCLE_WIDTH = 12
 
 # Digit Patterns (1=ON, 0=OFF) - 5x7 Matrix
 # Each sub-list represents a row of 5 dots.
@@ -42,9 +42,9 @@ class DigitalClock:
         self.root = root
         self.root.title("Digital Clock Simulator (IST) - Dot Matrix")
         self.root.geometry(f"{WIDTH}x{HEIGHT}")
-        self.root.configure(bg="black")
+        self.root.configure(bg="white")
         
-        self.canvas = tk.Canvas(self.root, width=WIDTH, height=HEIGHT, bg="black", highlightthickness=0)
+        self.canvas = tk.Canvas(self.root, width=WIDTH, height=HEIGHT, bg="white", highlightthickness=0)
         self.canvas.pack()
         
         self.update_clock()
@@ -55,8 +55,11 @@ class DigitalClock:
         ist_offset = datetime.timedelta(hours=5, minutes=30)
         return now_utc + ist_offset
 
-    def draw_dots(self, x, y, matrix, color="#00FF00"):
-        """Draws a grid of dots based on the provided matrix (list of lists)."""
+    def draw_dots(self, x, y, matrix, color="#212121"):
+        """
+        Draws a grid of dots based on the provided matrix (list of lists).
+        CGIP Reference: Polygon/Area Filling (rendered as recursive rectangle drawing)
+        """
         for r, row in enumerate(matrix):
             for c, val in enumerate(row):
                 if val:
@@ -64,7 +67,10 @@ class DigitalClock:
                     self.canvas.create_rectangle(px, py, px + DOT_SIZE, py + DOT_SIZE, fill=color, outline="")
 
     def draw_digit_pair(self, x, y, value):
-        """Helper to draw two digits (e.g., '12' from 12). Returns new X position."""
+        """
+        Helper to draw two digits (e.g., '12' from 12). Returns new X position.
+        CGIP Reference: Coordinate Transformation (mapping digits to the center of the canvas)
+        """
         self.draw_dots(x, y, DIGIT_PATTERNS[value // 10])
         x += DIGIT_W + DIGIT_SPACING
         self.draw_dots(x, y, DIGIT_PATTERNS[value % 10])
@@ -77,7 +83,10 @@ class DigitalClock:
         return x + COLON_W + SECTION_SPACING
 
     def draw_circle_segments(self, radius, count, active_count, color_on, color_off, width=20):
-        """Draws a segmented circle."""
+        """
+        Draws a segmented circle.
+        CGIP Reference: Midpoint Circle/Arc Algorithm (implemented via tk.Canvas.create_arc)
+        """
         angle_per_segment = 360 / count
         gap_angle = 1 # gap between segments in degrees
         
@@ -103,9 +112,10 @@ class DigitalClock:
         s = current_time.second
         
         # --- Draw Concentric Circles ---
-        self.draw_circle_segments(RADIUS_HOUR, 24, h, "#00FF00", "#112211", width=CIRCLE_WIDTH) # Green
-        self.draw_circle_segments(RADIUS_MINUTE, 60, m, "#0000FF", "#111122", width=CIRCLE_WIDTH) # Blue
-        self.draw_circle_segments(RADIUS_SECOND, 60, s, "#FF0000", "#221111", width=CIRCLE_WIDTH) # Red
+        # Hour: Indigo, Minute: Teal, Second: Coral
+        self.draw_circle_segments(RADIUS_HOUR, 24, h, "#3F51B5", "#EEEEEE", width=CIRCLE_WIDTH) 
+        self.draw_circle_segments(RADIUS_MINUTE, 60, m, "#009688", "#EEEEEE", width=CIRCLE_WIDTH) 
+        self.draw_circle_segments(RADIUS_SECOND, 60, s, "#FF5722", "#EEEEEE", width=CIRCLE_WIDTH) 
         
         # --- Draw Digital Time (Centered) ---
         # Calculate total width
